@@ -1,3 +1,4 @@
+from webbrowser import get
 import numpy as np
 import pandas as pd
 
@@ -27,7 +28,7 @@ class Condition():
         self.value = value
 
 class DecisionTreeClassifier():
-    def __init__(self, minimum_samples = 2, max_depth = 2):
+    def __init__(self, minimum_samples = 2, max_depth = 2,file=None):
         """
         :params: minimum_samples: if the node contains l.q. Minimum samples then tree ends.
         """
@@ -35,15 +36,23 @@ class DecisionTreeClassifier():
         self.root = None
         self.minimum_samples = minimum_samples
         self.max_depth = max_depth
+        self.file = file
 
 
 
 
-    def tree_builder(self, dataset, curr_depth=0):
+    def tree_builder(self, dataset, curr_depth=0,featuresize=0):
         #X,Y = data[["x","y"]].to_numpy(),data[["class"]].to_numpy()
+        
         X, Y = dataset[:,:-1], dataset[:,-1]
-        bag_var = np.random.randint(len(X)-len(X)/2,len(X)+2)
-        samplesize , featuresize = np.shape(X)
+        var = np.shape(X)[1]
+        if curr_depth == 0 and var >100:
+            featuresize= np.random.randint(var/100,var/10)
+        else:
+            import random
+            featuresize = random.randint(1,2)
+        samplesize= np.shape(X)[0]
+        
 
         if samplesize>= self.minimum_samples and curr_depth <= self.max_depth:
 
@@ -51,8 +60,8 @@ class DecisionTreeClassifier():
             split = self.get_split(dataset,samplesize,featuresize)
 
             if bool(split.get('infogain')) and split['infogain']>0:
-                left_subtree = self.tree_builder(split["dataset_left"],curr_depth+1)
-                right_subtree = self.tree_builder(split["dataset_right"], curr_depth+1)
+                left_subtree = self.tree_builder(split["dataset_left"],curr_depth+1,featuresize)
+                right_subtree = self.tree_builder(split["dataset_right"], curr_depth+1,featuresize)
             
                 return Condition(split["feature_index"],split["threshold"], left_subtree, right_subtree, split["infogain"])
         
@@ -154,34 +163,23 @@ class DecisionTreeClassifier():
         else:
             return self.make_prediction(x, tree.right)
     
-    def print_tree(self, tree=None, indent=" "):
 
-        ''' function to print the tree '''
-    
-        if not tree:
-            tree = self.root
-
-        if tree.value is not None:
-            print(tree.value)
-
-        else:
-            print("X_"+str(tree.feature_index), "<=", tree.threshold, "?", tree.info_gain)
-            print("%sleft:" % (indent), end="")
-            self.print_tree(tree.left, indent + indent)
-            print("%sright:" % (indent), end="")
-            self.print_tree(tree.right, indent + indent)
 
 if __name__ == '__main__':
-
+    from text_data import get_text
     data = pd.read_csv('spirals.csv', index_col = 0)
-
-
-    X = data.iloc[:, :-1].values
-    Y = data.iloc[:, -1].values.reshape(-1,1)
+    sms_spam = pd.read_csv('SMSSpamCollection', sep='\t',
+                                header=None, names=['Label', 'SMS'])
+    #for text data classification
+    data_text,label  = get_text()
+    # X = data.iloc[:, :-1].values
+    # Y = data.iloc[:, -1].values.reshape(-1,1)
+    X = data_text
+    Y = label
     from sklearn.model_selection import train_test_split
-    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=.1, random_state=1)
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=.9, random_state=1)
 
-    classifier = DecisionTreeClassifier(minimum_samples=10, max_depth=300)
+    classifier = DecisionTreeClassifier(minimum_samples=100, max_depth=30)
     print("done")
     import time
     start_time = time.time()

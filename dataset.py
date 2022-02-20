@@ -54,7 +54,7 @@ def blobs(n, center, cov):
 
 
 if __name__ == "__main__":
-    data = spirals(n=2000, cycles=4, sd=0.05)
+    #data = spirals(n=2000, cycles=4, sd=.005)
     data = blobs(2000, [np.array([1, 2]), np.array([5, 6])], [np.array([[0.25, 0], [0, 0.25]])] * 2)
     plt.scatter(data[0], data[1], s=5, c=data["class"])
     plt.show()
