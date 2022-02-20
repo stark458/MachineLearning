@@ -1,8 +1,7 @@
-from webbrowser import get
+
 import numpy as np
 import pandas as pd
 
-# hello
 
 #For the spirals.csv dataset we have variable X , Y => features and binary class output => label.
 class RandomnessGenerator():
@@ -172,21 +171,16 @@ if __name__ == '__main__':
                                 header=None, names=['Label', 'SMS'])
     #for text data classification
     data_text,label  = get_text()
-    # X = data.iloc[:, :-1].values
-    # Y = data.iloc[:, -1].values.reshape(-1,1)
     X = data_text
     Y = label
     from sklearn.model_selection import train_test_split
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=.9, random_state=1)
-
     classifier = DecisionTreeClassifier(minimum_samples=100, max_depth=30)
-    print("done")
     import time
     start_time = time.time()
     classifier.fit(X_train,Y_train)
     training_time = time.time() - start_time
     print("train time: = ",training_time)
-    # classifier.print_tree()
     Y_pred = classifier.predict(X_test) 
     from sklearn.metrics import accuracy_score
     accuracy = accuracy_score(Y_test, Y_pred)
